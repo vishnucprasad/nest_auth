@@ -6,7 +6,7 @@ import { UserRepository } from '../repository';
 import { ObjectId } from 'mongodb';
 import { FilterQuery } from 'mongoose';
 import { User } from '../schema';
-import { AuthDto } from '../dto/auth.dto';
+import { AuthDto } from '../dto';
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(
@@ -15,7 +15,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
 ) {
   constructor(private readonly userRepository: UserRepository) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromBodyField('refreshToken'),
       secretOrKey: refreshTokenConfig().secret,
     });
   }

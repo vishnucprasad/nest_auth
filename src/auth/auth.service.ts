@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshTokenRepository, UserRepository } from './repository';
-import { LoginDto, RegisterDto } from './dto';
+import { LoginDto, RefreshTokenDto, RegisterDto } from './dto';
 import { ObjectId } from 'mongodb';
 import { FilterQuery } from 'mongoose';
 import {
@@ -16,7 +16,7 @@ import {
 } from 'src/config';
 import * as argon from 'argon2';
 import { AuthDto } from './dto/auth.dto';
-import { RefreshToken } from './schema';
+import { RefreshToken, User } from './schema';
 
 @Injectable()
 export class AuthService {
@@ -88,5 +88,29 @@ export class AuthService {
       secret: config.secret,
       expiresIn: config.expiresIn,
     });
+  }
+
+  async refreshToken(
+    user: User,
+    dto: RefreshTokenDto,
+  ): Promise<{ access_token: string }> {
+    const refreshToken = await this.refreshTokenRepository.findOne({
+      token: dto.refreshToken,
+    } as FilterQuery<RefreshToken>);
+
+    if (!refreshToken) {
+      throw new UnauthorizedException();
+    }
+
+    const payload: Payload = {
+      sub: user._id,
+      email: user.email,
+    };
+
+    const accessToken = await this.generateJWT(payload, accessTokenConfig());
+
+    return {
+      access_token: accessToken,
+    };
   }
 }

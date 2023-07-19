@@ -8,9 +8,8 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto, RegisterDto } from './dto';
-import { AuthDto } from './dto/auth.dto';
-import { AccessTokenGuard } from './guard';
+import { AuthDto, LoginDto, RefreshTokenDto, RegisterDto } from './dto';
+import { AccessTokenGuard, RefreshTokenGuard } from './guard';
 import { SerializeUser } from './decorator';
 import { User } from './schema';
 
@@ -30,8 +29,14 @@ export class AuthController {
   }
 
   @UseGuards(AccessTokenGuard)
-  @Get('/')
+  @Get()
   getAuth(@SerializeUser() user: AuthDto): AuthDto {
     return user;
+  }
+
+  @UseGuards(RefreshTokenGuard)
+  @Post('refresh')
+  refreshToken(@SerializeUser() user: User, @Body() dto: RefreshTokenDto) {
+    return this.authService.refreshToken(user, dto);
   }
 }
